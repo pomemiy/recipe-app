@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レシピ提案アプリ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>レシピ提案アプリ</h1>
+        <div class="input-section">
+            <form id="recipeForm">
+                <div class="ingredients-input">
+                    <div class="ingredient-list" id="ingredientList">
+                        <div class="ingredient-item">
+                            <input type="text" class="ingredient-input" placeholder="材料を入力" required>
+                            <button type="button" class="remove-btn" style="display: none;">×</button>
+                        </div>
+                    </div>
+                    <button type="button" id="addIngredient" class="add-btn">+ 材料を追加</button>
+                </div>
+                <button type="submit" class="submit-btn">レシピを提案</button>
+            </form>
+        </div>
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>レシピを生成中...</p>
+        </div>
+        <div class="result-section" id="result" style="display: none;">
+            <h2>レシピの提案</h2>
+            <div class="recipe-content" id="recipeContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 材料の追加
+        document.getElementById('addIngredient').addEventListener('click', () => {
+            const list = document.getElementById('ingredientList');
+            const newItem = document.createElement('div');
+            newItem.className = 'ingredient-item';
+            newItem.innerHTML = `
+                <input type="text" class="ingredient-input" placeholder="材料を入力" required>
+                <button type="button" class="remove-btn">×</button>
+            `;
+            list.appendChild(newItem);
+            
+            // 削除ボタンの表示/非表示を更新
+            updateRemoveButtons();
+        });
+
+        // 材料の削除
+        document.getElementById('ingredientList').addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-btn')) {
+                e.target.parentElement.remove();
+                updateRemoveButtons();
+            }
+        });
+
+        // 削除ボタンの表示/非表示を更新
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.ingredient-item');
+            items.forEach(item => {
+                const removeBtn = item.querySelector('.remove-btn');
+                removeBtn.style.display = items.length > 1 ? 'block' : 'none';
+            });
+        }
+
+        // フォーム送信
+        document.getElementById('recipeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const recipeContent = document.getElementById('recipeContent');
+            
+            // 材料を収集
+            const ingredients = Array.from(document.querySelectorAll('.ingredient-input'))
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+            
+            if (ingredients.length === 0) {
+                alert('材料を1つ以上入力してください。');
+                return;
+            }
+            
+            loading.style.display = 'flex';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch('/suggest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ingredients: ingredients.join(', ') })
+                });
+                
+                const data = await response.json();
+                recipeContent.innerHTML = data.recipe.replace(/\n/g, '<br>');
+                result.style.display = 'block';
+            } catch (error) {
+                recipeContent.innerHTML = 'エラーが発生しました。もう一度お試しください。';
+                result.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 
