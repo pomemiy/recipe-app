@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# 仮想環境
+.venv/
+venv/
+env/
+
+# 環境変数ファイル
+.env*
+!/.env.example
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# モデルやキャッシュ
+models/
+.cache/
+*.incomplete
+
+# IDE/Editor specific
+.idea/
+.vscode/
+*.swp
+*.swo 
